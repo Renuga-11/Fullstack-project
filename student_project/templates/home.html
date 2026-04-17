@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Home</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    </head>
+    <body>
+        <header class="navbar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='image2.jfif') }}"> CARE College of Engineering
+        </div>
+        <nav>
+            <ul type="none">
+                <li><a href="home.html">Home</a></li>
+                <li><a href="studentList.html">Students List</a></li>
+                <li><a href="student.html">Add Students</a></li>
+                <li><a href="studentEntry.html">Attendance Entry</a></li>
+                <li><button class="search-btn"><i class="fas fa-search"></i></button></li>
+            </ul>
+        </nav>
+    </header>
+        <center>
+            <h2>Attendance Log</h2>
+
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Date</th>
+                        <th>Check-in</th>
+                        <th>Check-out</th>
+                    </tr>
+                </thead>
+                <tbody id="logTableBody"></tbody>
+            </table>
+        </center>
+        <script>
+            async function loadAttendance() {
+                const res = await fetch('/api/get_attendance');
+                const logs = await res.json();
+            
+                const tbody = document.getElementById('logTableBody');
+                tbody.innerHTML = '';
+            
+                logs.forEach(log => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${log.id}</td>
+                        <td>${log.date}</td>
+                        <td>${log.in}</td>
+                        <td>${log.out}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+            
+            window.onload = loadAttendance;
+            </script>
+    </body>
+</html>

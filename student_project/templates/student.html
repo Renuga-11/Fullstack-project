@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Add Student</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    </head>
+<body>
+    <header class="navbar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='image2.jfif') }}"> CARE College of Engineering
+        </div>
+        <nav>
+            <ul type="none">
+                <li><a href="home.html">Home</a></li>
+                <li><a href="studentList.html">Students List</a></li>
+                <li><a href="student.html">Add Students</a></li>
+                <li><a href="studentEntry.html">Attendance Entry</a></li>
+                <li><button class="search-btn"><i class="fas fa-search"></i></button></li>
+            </ul>
+        </nav>
+    </header>
+    <section class="banner">
+        <div class="banner-content">
+            <h1 style="color:black;">CARE College Student Entry Form</h1>
+        </div>
+    </section> <br> <br>
+
+    <main class="container"> <br> <br>
+        <form class="entry-form" id="studentForm" enctype="multipart/form-data">
+
+            <div class="form-group">
+                <label>Full Name: <span class="star">*</span></label>
+                <input type="text" name="name" placeholder="Enter your name" required>
+
+            </div>
+
+            <div class="form-group">
+                <label>Date of Birth:</label>
+                <div class="dob-group">
+                    
+                        <select id="day"><option>Day</option></select>
+                        <select id="month"><option>Month</option></select>
+                        <select id="year"><option>Year</option></select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Student ID: <span class="star">*</span></label>
+                <input type="text" name="id" pattern="[A-Za-z0-9_-]+" required>
+
+            </div>
+
+            <div class="form-group">
+                <label>Email Address:</label>
+                <input type="email" name="email" placeholder="abc@gmail.com">
+
+            </div>
+
+            <div class="form-group">
+                <label>Phone Number:</label>
+                <input type="tel" name="phone" pattern="[0-9]{10}" maxlength="10" required>
+
+            </div>
+
+            <div class="form-group">
+                <label>Address:</label>
+                <textarea name="address" rows="4" placeholder="Enter your address"></textarea>
+
+            </div>
+
+            <div class="form-group">
+                <label>Select Course: <span class="star">*</span></label>
+                <select name="course">
+
+                    <option>CSE</option>
+                    <option>IT</option>
+                    <option>ECE</option>
+                    <option>MECH</option>
+                    <option>CIVIL</option>
+                    <option>EEE</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Upload Resume: <span class="star">*</span></label>
+                <div class="file-upload">
+                    <label for="resume-upload" class="custom-file-upload" style="color:black;">Upload Resume</label>
+                    <input id="resume-upload" name="resume" type="file" />
+
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Submit</button>
+                <button type="reset" class="btn-reset" id="resetBtn">Reset</button>
+            </div>
+        </form>
+    </main>
+    <script>
+    
+            document.addEventListener("DOMContentLoaded", function () {
+            
+                const d = document.getElementById('day');
+                const m = document.getElementById('month');
+                const y = document.getElementById('year');
+                const studentForm = document.getElementById('studentForm');
+            
+                for (let i = 1; i <= 31; i++) {
+                    d.innerHTML += `<option value="${i}">${i}</option>`;
+                }
+                const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                months.forEach((name, index) => {
+                    m.innerHTML += `<option value="${index + 1}">${name}</option>`;
+                });
+                for (let i = new Date().getFullYear(); i >= 1990; i--) {
+                    y.innerHTML += `<option value="${i}">${i}</option>`;
+                }
+                studentForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+            
+                    const formData = new FormData(this);
+                    const dob = `${y.value}-${m.value}-${d.value}`;
+                    formData.append("dob", dob);
+            
+                    try {
+                        const response = await fetch('/api/add_student', {
+                            method: 'POST',
+                            body: formData
+                        });
+            
+                        const res = await response.json();
+                        alert(res.message || res.error);
+                        this.reset();
+                    } catch (err) {
+                        alert("Error submitting form");
+                        console.error(err);
+                    }
+                });
+            
+            });
+            </script>
+            
+    
+        
+
+</body>
+</html>

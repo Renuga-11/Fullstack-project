@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style1.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='image2.jfif') }}" alt="College Logo" style="width:100px; height:50px;">CARE College of Engineering
+        </div>
+        <nav>
+            <ul style="list-style: none; display: flex; gap: 20px;">
+                <li><a href="home.html">Home</a></li>
+                <li><a href="studentList.html">Students List</a></li>
+                <li><a href="student.html">Add Students</a></li>
+                <li><a href="studentEntry.html">Attendance Entry</a></li>
+                <li><button class="search-btn"><i class="fas fa-search"></i></button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="banner">
+        <div class="banner-content">
+            <h2 style="padding: 20px;">Students List</h2>  
+        </div>
+    </section> <br>
+    <br> <br>
+
+    <div class="dashboard-container">
+        <div class="search-bar" style="margin-bottom: 20px;">
+            <input type="text" id="searchInput" placeholder="Search by name, ID, or email">
+            <select id="courseFilter">
+                <option value="">All Courses</option>
+                <option value="CSE">CSE</option>
+                <option value="IT">IT</option>
+                <option value="ECE">ECE</option>
+                <option value="MECH">MECH</option>
+                <option value="CIVIL">CIVIL</option>
+                <option value="EEE">EEE</option>
+            </select>
+            <select id="statusFilter">
+                <option value="">Any Status</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+            <button class="btn-search">Search</button>
+        </div>
+
+        <div class="table-card">
+            <div class="action-buttons" style="margin-bottom: 10px;">
+                <button class="btn-enable">Enable Selected</button>
+                <button class="btn-disable">Disable Selected</button>
+                <span id="selectedCount">0 selected</span>
+                <button id="bulkDeleteBtn" class="btn-delete-selected" disabled>
+                    Delete
+                </button>
+                
+            </div>
+
+            <table border="1" width="100%" style="border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll"></th>
+                        <th>Student Name</th>
+                        <th>Student ID</th>
+                        <th>Course</th>
+                        <th>Email</th>
+                        <th>Active</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTableBody">
+                    
+                        
+                    </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="editModal" class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
+        <div class="modal-content" style="background:#fff; margin:10% auto; padding:20px; border-radius:8px; width:400px; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+            <span class="close-modal" style="float:right; font-size:24px; cursor:pointer;">&times;</span>
+            <h3>Edit Student Details</h3>
+            <hr>
+            <form id="editForm">
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; font-weight:bold;">Student Name</label>
+                    <input type="text" id="editName" style="width:100%; padding:8px;" required>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; font-weight:bold;">Student ID</label>
+                    <input type="text" id="editId" style="width:100%; padding:8px;" required>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; font-weight:bold;">Email</label>
+                    <input type="email" id="editEmail" style="width:100%; padding:8px;" required>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; font-weight:bold;">Phone</label>
+                    <input type="text" id="editPhone" style="width:100%; padding:8px;">
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" class="btn-save-edit" style="flex:1; background:#2980b9; color:white; border:none; padding:10px; cursor:pointer;">Update</button>
+                    <button type="button" class="btn-cancel" style="flex:1; background:#eee; border:none; padding:10px; cursor:pointer;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        
+            async function loadStudents() {
+                try {
+                    const res = await fetch('/api/get_students');
+                    const students = await res.json();
+                    const tbody = document.getElementById('studentTableBody');
+                    tbody.innerHTML = '';
+            
+                    students.forEach(student => {
+                        const tr = document.createElement('tr');
+                        tr.setAttribute('data-phone', student.phone || '');
+                        tr.innerHTML = `
+    <td><input type="checkbox" class="row-checkbox"></td>
+    <td><strong>${student.name}</strong></td>
+    <td class="sid">${student.id}</td> <td>${student.course}</td>
+    <td>${student.email}</td>
+    <td>
+        <label class="switch">
+            <input type="checkbox" class="status-toggle" ${student.active ? 'checked' : ''}>
+            <span class="slider round"></span>
+        </label>
+    </td>
+    <td>
+        <button class="btn-edit" ${student.active ? '' : 'disabled'}>Edit</button>
+        <button class="btn-delete" data-id="${student.id}" style="border:1px solid #d9534f; color:#d9534f; background:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Delete</button>
+    </td>
+`;
+
+                        
+                        tbody.appendChild(tr);
+                    });
+                } catch (err) {
+                    console.error('Error loading students:', err);
+                }
+            }
+            window.onload = loadStudents;
+const studentTableBody = document.getElementById('studentTableBody');
+const modal = document.getElementById('editModal');
+let currentRow = null;
+function performSearch() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const selectedCourse = document.getElementById('courseFilter').value;
+    const selectedStatus = document.getElementById('statusFilter').value;
+    const rows = studentTableBody.querySelectorAll('tr');
+
+    rows.forEach(row => {
+        const name = row.cells[1].innerText.toLowerCase();
+        const id = row.cells[2].innerText.toLowerCase();
+        const course = row.cells[3].innerText;
+        const email = row.cells[4].innerText.toLowerCase();
+        const isActive = row.querySelector('.status-toggle').checked;
+
+        const matchesText = name.includes(query) || id.includes(query) || email.includes(query);
+        const matchesCourse = selectedCourse === "" || course === selectedCourse;
+        let matchesStatus = true;
+        if (selectedStatus === "Active") matchesStatus = isActive;
+        if (selectedStatus === "Inactive") matchesStatus = !isActive;
+
+        row.style.display = (matchesText && matchesCourse && matchesStatus) ? "" : "none";
+    });
+}
+
+document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    checkboxes.forEach(cb => {
+        if (cb.closest('tr').style.display !== 'none') {
+            cb.checked = this.checked;
+        }
+    });
+    updateCount();
+});
+
+function updateCount() {
+    const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+    document.getElementById('selectedCount').textContent = `${checkedCount} selected`;
+}
+
+studentTableBody.addEventListener('change', (e) => {
+    if (e.target.classList.contains('row-checkbox')) {
+        updateCount();
+    }
+
+    
+    if (e.target.classList.contains('status-toggle')) {
+        const row = e.target.closest('tr');
+        const editBtn = row.querySelector('.btn-edit');
+
+        editBtn.disabled = !e.target.checked;
+    }
+});
+
+
+
+studentTableBody.addEventListener('click', (e) => {
+    if (e.target.classList.contains('btn-edit')) {
+        currentRow = e.target.closest('tr');
+        document.getElementById('editName').value = currentRow.querySelector('strong').innerText;
+        document.getElementById('editId').value = currentRow.cells[2].innerText;
+        document.getElementById('editEmail').value = currentRow.cells[4].innerText;
+        document.getElementById('editPhone').value = currentRow.getAttribute('data-phone') || "";
+
+        modal.style.display = "block";
+    }
+});
+
+document.querySelector('.btn-save-edit').addEventListener('click', async () => {
+    if (currentRow) {
+       
+        const originalId = currentRow.cells[2].innerText;  
+
+const updatedData = {
+    old_id: originalId,  
+    id: document.getElementById('editId').value,
+    name: document.getElementById('editName').value,
+    email: document.getElementById('editEmail').value,
+    phone: document.getElementById('editPhone').value
+};
+
+
+        
+        try {
+            const response = await fetch('/api/update_student', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
+            });
+
+            if (response.ok) {
+                
+                currentRow.querySelector('strong').innerText = updatedData.name;
+                currentRow.cells[2].innerText = updatedData.id;
+                currentRow.cells[4].innerText = updatedData.email;
+                currentRow.setAttribute('data-phone', updatedData.phone);
+
+                modal.style.display = "none";
+                alert("Database updated successfully!");
+            } else {
+                alert("Failed to update database.");
+            }
+        } catch (err) {
+            console.error("Error:", err);
+        }
+    }
+});
+
+
+document.querySelector('.close-modal').onclick = () => modal.style.display = "none";
+document.querySelector('.btn-cancel').onclick = () => modal.style.display = "none";
+
+
+function bulkUpdateStatus(shouldEnable) {
+    const selected = document.querySelectorAll('.row-checkbox:checked');
+    if (selected.length === 0) return alert("Select a student first.");
+
+    selected.forEach(cb => {
+        const row = cb.closest('tr');
+        row.querySelector('.status-toggle').checked = shouldEnable;
+        row.querySelector('.btn-edit').disabled = !shouldEnable;
+    });
+}
+
+document.querySelector('.btn-enable').onclick = () => bulkUpdateStatus(true);
+document.querySelector('.btn-disable').onclick = () => bulkUpdateStatus(false);
+
+
+document.querySelector('.btn-search').onclick = performSearch;
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        performSearch();
+    }
+});
+function updateCount() {
+    const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+    const count = checkedBoxes.length;
+
+    document.getElementById('selectedCount').textContent = `${count} selected`;
+
+    const bulkBtn = document.getElementById('bulkDeleteBtn');
+    bulkBtn.disabled = count === 0;
+}
+
+
+studentTableBody.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('btn-delete')) {
+        const row = e.target.closest('tr');
+        
+        const studentId = e.target.getAttribute('data-id'); 
+
+        if (confirm(`Are you sure you want to delete ID: ${studentId}?`)) {
+            try {
+                const response = await fetch(`/api/delete_student/${studentId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    row.remove();
+                    updateCount();
+                    alert("Deleted from database successfully.");
+                } else {
+                    const errData = await response.json();
+                    alert("Error: " + errData.error);
+                }
+            } catch (err) {
+                console.error("Delete failed:", err);
+            }
+        }
+    }
+});
+document.getElementById('bulkDeleteBtn').addEventListener('click', async () => {
+
+    const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+
+    if (selectedCheckboxes.length === 0) return;
+
+    const ids = [];
+
+    selectedCheckboxes.forEach(cb => {
+        const row = cb.closest('tr');
+        const studentId = row.cells[2].innerText;
+        ids.push(studentId);
+    });
+
+    if (!confirm(`Are you sure you want to delete ${ids.length} selected students?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/delete_selected_students', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: ids })
+        });
+
+        if (response.ok) {
+
+            // Remove rows from UI
+            selectedCheckboxes.forEach(cb => {
+                cb.closest('tr').remove();
+            });
+
+            updateCount();
+            alert("Selected students deleted successfully!");
+
+        } else {
+            const err = await response.json();
+            alert("Error: " + err.error);
+        }
+
+    } catch (err) {
+        console.error("Bulk delete failed:", err);
+    }
+});
+
+</script>
+</body>
+</html>
